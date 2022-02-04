@@ -70,6 +70,7 @@ namespace DarkBot.HackDetect
 
             if (option == null)
             {
+                Log(LogSeverity.Error, "Command error");
                 await command.RespondAsync("Command error");
             }
             else
@@ -79,6 +80,7 @@ namespace DarkBot.HackDetect
                     SocketSlashCommandDataOption val = option.Options.First();
                     SocketRole jailRole = val.Value as SocketRole;
                     serverJailRoles[sg.Id] = jailRole.Id;
+                    Log(LogSeverity.Info, $"{sg.Name} jail role now set to '{jailRole.Name}'");
                     await command.RespondAsync($"Guild jail role now set to '{jailRole.Name}'");
                     SaveDatabase();
                 }
@@ -86,12 +88,14 @@ namespace DarkBot.HackDetect
                 {
                     if (serverJailRoles.ContainsKey(sg.Id))
                     {
+                        Log(LogSeverity.Info, $"{sg.Name} jailing is now disabled");
                         await command.RespondAsync($"Jailing is now disabled");
                         serverJailRoles.Remove(sg.Id);
                         SaveDatabase();
                     }
                     else
                     {
+                        Log(LogSeverity.Info, $"{sg.Name} jailing is already disabled");
                         await command.RespondAsync($"Jailing is already disabled");
                     }
                 }
@@ -101,10 +105,12 @@ namespace DarkBot.HackDetect
                     SocketTextChannel stc = val.Value as SocketTextChannel;
                     if (stc == null)
                     {
-                        await command.RespondAsync($"Notify channel setup error, needs to be a text channel'");
+                        Log(LogSeverity.Info, $"{sg.Name} notify channel setup error, needs to be a text channel");
+                        await command.RespondAsync($"Notify channel setup error, needs to be a text channel");
                         return;
                     }
                     notifyChannels[sg.Id] = stc.Id;
+                    Log(LogSeverity.Info, $"{sg.Name} notification channel now set to '{stc.Name}'");
                     await command.RespondAsync($"Notification channel now set to <#{stc.Id}>");
                     SaveDatabase();
                 }
@@ -112,12 +118,14 @@ namespace DarkBot.HackDetect
                 {
                     if (notifyChannels.ContainsKey(sg.Id))
                     {
+                        Log(LogSeverity.Info, $"{sg.Name} notifications are now disabled");
                         await command.RespondAsync($"Notifications are now disabled");
                         notifyChannels.Remove(sg.Id);
                         SaveDatabase();
                     }
                     else
                     {
+                        Log(LogSeverity.Info, $"{sg.Name} notifications are already disabled");
                         await command.RespondAsync($"Notifications are already disabled");
                     }
                 }
@@ -127,11 +135,13 @@ namespace DarkBot.HackDetect
                     if (newState)
                     {
                         serverBanOk.Add(sg.Id);
+                        Log(LogSeverity.Info, $"{sg.Name} HackDetect is now allowed to ban bots");
                         await command.RespondAsync($"HackDetect is now allowed to ban bots");
                     }
                     else
                     {
                         serverBanOk.Remove(sg.Id);
+                        Log(LogSeverity.Info, $"{sg.Name} HackDetect is no longer allowed to ban bots");
                         await command.RespondAsync($"HackDetect is no longer allowed to ban bots");
                     }
                     SaveDatabase();
@@ -150,11 +160,13 @@ namespace DarkBot.HackDetect
                     {
                         notifyChannels.Remove(sg.Id);
                     }
+                    Log(LogSeverity.Info, $"{sg.Name} HackDetect will no longer take any action in this server");
                     await command.RespondAsync($"HackDetect will no longer take any action in this server");
                     SaveDatabase();
                 }
                 if (option.Name == "config")
                 {
+                    Log(LogSeverity.Info, $"{sg.Name} HackDetect showing config");
                     StringBuilder response = new StringBuilder();
                     if (serverBanOk.Contains(sg.Id))
                     {
@@ -274,6 +286,7 @@ namespace DarkBot.HackDetect
                 stc = user.Guild.GetTextChannel(notifyChannels[user.Guild.Id]);
             }
             //Get message history
+            Log(LogSeverity.Info, $"HackDetect deleting messages from {user.Id}");
             foreach (Tuple<ulong, ulong> channelMessagePair in duplicateMessages)
             {
                 SocketTextChannel sc = _client.GetChannel(channelMessagePair.Item1) as SocketTextChannel;
@@ -289,6 +302,7 @@ namespace DarkBot.HackDetect
             {
                 if (stc != null)
                 {
+                    Log(LogSeverity.Info,$"{user.Id}, <@{user.Id}> has been detected as a bot but is an admin, ignoring");
                     await stc.SendMessageAsync($"{user.Id}, <@{user.Id}> has been detected as a bot but is an admin, ignoring");
                 }
                 return;
@@ -298,6 +312,7 @@ namespace DarkBot.HackDetect
                 await user.BanAsync(1, "Bot detected");
                 if (stc != null)
                 {
+                    Log(LogSeverity.Info,$"{user.Nickname}, <@{user.Id}> has been detected as a bot and was banned");
                     await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot and was banned");
                 }
                 return;
@@ -311,6 +326,7 @@ namespace DarkBot.HackDetect
                     await user.AddRoleAsync(jailRole);
                     if (stc != null)
                     {
+                        Log(LogSeverity.Info,$"{user.Nickname}, <@{user.Id}> has been detected as a bot and was jailed");
                         await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot and was jailed");
                     }
                 }
@@ -318,6 +334,7 @@ namespace DarkBot.HackDetect
                 {
                     if (stc != null)
                     {
+                        Log(LogSeverity.Info,$"{user.Nickname}, <@{user.Id}> has been detected as a bot but the jail role is missing");
                         await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot but the jail role is missing");
                     }
                 }
@@ -325,6 +342,7 @@ namespace DarkBot.HackDetect
             }
             if (stc != null)
             {
+                Log(LogSeverity.Info,$"{user.Nickname}, <@{user.Id}> has been detected as a bot but jailing or banning is not setup");
                 await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot but jailing or banning is not setup");
             }
         }
