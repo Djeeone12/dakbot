@@ -297,11 +297,11 @@ namespace DarkBot.HackDetect
                 try
                 {
                     Log(LogSeverity.Info, $"Trying to delete {channelMessagePair.Item2}");
-                    await sc.DeleteMessageAsync(channelMessagePair.Item2);
+                    sc.DeleteMessageAsync(channelMessagePair.Item2);
                 }
-                catch
+                catch (Exception e)
                 {
-                    Log(LogSeverity.Info, $"Failed to delete {channelMessagePair.Item2}");
+                    Log(LogSeverity.Info, $"Failed to delete {channelMessagePair.Item2}: {e}");
                 }
             }
             duplicateMessages.Clear();
@@ -327,7 +327,12 @@ namespace DarkBot.HackDetect
             }
             if (serverJailRoles.ContainsKey(user.Guild.Id))
             {
-                await user.RemoveRolesAsync(user.Roles);
+                List<IRole> roleCopy = new List<IRole>(user.Roles);
+                IRole everyoneRole = roleCopy.Where<IRole>(x => x.Name == "@everyone").FirstOrDefault<IRole>();
+                if (everyoneRole != null)
+                {
+                    roleCopy.Remove(everyoneRole);
+                }
                 SocketRole jailRole = user.Guild.GetRole(serverJailRoles[user.Guild.Id]);
                 if (jailRole != null)
                 {
@@ -335,7 +340,11 @@ namespace DarkBot.HackDetect
                     if (stc != null)
                     {
                         Log(LogSeverity.Info, $"{user.Nickname}, <@{user.Id}> has been detected as a bot and was jailed");
-                        await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot and was jailed");
+                        stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot and was jailed");
+                    }
+                    if (roleCopy.Count > 0)
+                    {
+                        await user.RemoveRolesAsync(roleCopy);
                     }
                 }
                 else
