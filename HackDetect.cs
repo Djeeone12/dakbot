@@ -294,7 +294,15 @@ namespace DarkBot.HackDetect
                 {
                     continue;
                 }
-                await sc.DeleteMessageAsync(channelMessagePair.Item2);
+                try
+                {
+                    Log(LogSeverity.Info, $"Trying to delete {channelMessagePair.Item2}");
+                    await sc.DeleteMessageAsync(channelMessagePair.Item2);
+                }
+                catch
+                {
+                    Log(LogSeverity.Info, $"Failed to delete {channelMessagePair.Item2}");
+                }
             }
             duplicateMessages.Clear();
             //Ignore admins
@@ -302,7 +310,7 @@ namespace DarkBot.HackDetect
             {
                 if (stc != null)
                 {
-                    Log(LogSeverity.Info,$"{user.Id}, <@{user.Id}> has been detected as a bot but is an admin, ignoring");
+                    Log(LogSeverity.Info, $"{user.Id}, <@{user.Id}> has been detected as a bot but is an admin, ignoring");
                     await stc.SendMessageAsync($"{user.Id}, <@{user.Id}> has been detected as a bot but is an admin, ignoring");
                 }
                 return;
@@ -312,7 +320,7 @@ namespace DarkBot.HackDetect
                 await user.BanAsync(1, "Bot detected");
                 if (stc != null)
                 {
-                    Log(LogSeverity.Info,$"{user.Nickname}, <@{user.Id}> has been detected as a bot and was banned");
+                    Log(LogSeverity.Info, $"{user.Nickname}, <@{user.Id}> has been detected as a bot and was banned");
                     await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot and was banned");
                 }
                 return;
@@ -326,7 +334,7 @@ namespace DarkBot.HackDetect
                     await user.AddRoleAsync(jailRole);
                     if (stc != null)
                     {
-                        Log(LogSeverity.Info,$"{user.Nickname}, <@{user.Id}> has been detected as a bot and was jailed");
+                        Log(LogSeverity.Info, $"{user.Nickname}, <@{user.Id}> has been detected as a bot and was jailed");
                         await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot and was jailed");
                     }
                 }
@@ -334,7 +342,7 @@ namespace DarkBot.HackDetect
                 {
                     if (stc != null)
                     {
-                        Log(LogSeverity.Info,$"{user.Nickname}, <@{user.Id}> has been detected as a bot but the jail role is missing");
+                        Log(LogSeverity.Info, $"{user.Nickname}, <@{user.Id}> has been detected as a bot but the jail role is missing");
                         await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot but the jail role is missing");
                     }
                 }
@@ -342,7 +350,7 @@ namespace DarkBot.HackDetect
             }
             if (stc != null)
             {
-                Log(LogSeverity.Info,$"{user.Nickname}, <@{user.Id}> has been detected as a bot but jailing or banning is not setup");
+                Log(LogSeverity.Info, $"{user.Nickname}, <@{user.Id}> has been detected as a bot but jailing or banning is not setup");
                 await stc.SendMessageAsync($"{user.Nickname}, <@{user.Id}> has been detected as a bot but jailing or banning is not setup");
             }
         }
